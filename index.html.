@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#050b14">
+<title>N.A.P JARVIS AI</title>
+<style>
+:root{--cyan:#38eaff;--blue:#178cff;--bg:#050b14;--panel:#0b1828}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 5%,#102c45,#050b14 55%);color:#dffaff;font-family:Arial,sans-serif;min-height:100vh}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:950px;margin:auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #236078;padding:12px 0}
+.logo{color:var(--cyan);font-weight:900;letter-spacing:3px;font-size:20px}
+.status{font-size:11px;color:#80f7c8;letter-spacing:1px}
+h1{font-size:23px;letter-spacing:2px;margin:25px 0 5px}
+.sub{color:#87b7ca;font-size:13px}
+.reactor-area{display:flex;justify-content:center;padding:24px 0 18px}
+.reactor{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;position:relative;border:2px solid var(--cyan);box-shadow:0 0 16px #19cfff, inset 0 0 24px #1263a0;animation:pulse 3s infinite}
+.reactor:before,.reactor:after{content:"";position:absolute;border-radius:50%;inset:12px;border:2px dashed #248aff;animation:spin 12s linear infinite}
+.reactor:after{inset:28px;border-style:solid;border-color:#38eaff80;animation-direction:reverse;animation-duration:8s}
+.core{z-index:1;text-align:center;color:white;text-shadow:0 0 12px var(--cyan)}
+.core b{display:block;font-size:34px;letter-spacing:3px}
+.core span{font-size:10px;letter-spacing:3px;color:var(--cyan)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{box-shadow:0 0 30px #19cfff,inset 0 0 34px #1263a0}}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.panel{background:linear-gradient(145deg,#0d2032dd,#07111ddd);border:1px solid #24516a;border-radius:14px;padding:15px;min-width:0}
+.panel h2{font-size:13px;color:var(--cyan);letter-spacing:2px;margin:0 0 12px}
+.clock{font-size:29px;font-weight:bold}
+.date{font-size:12px;color:#91b7c9;margin-top:5px}
+button{background:#0b263a;color:#baf7ff;border:1px solid #2586a6;border-radius:9px;padding:11px}
+button:active{background:#12486a}
+.primary{background:linear-gradient(100deg,#087db0,#1552a0);color:white;border-color:#4ceaff}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1}
+#mic{width:100%;margin-top:10px;padding:15px;font-weight:bold}
+input,textarea{width:100%;background:#04101b;border:1px solid #22516b;border-radius:8px;padding:11px;color:white;outline:none}
+textarea{resize:vertical;min-height:85px}
+#log{height:150px;overflow:auto;font-size:13px;line-height:1.6;color:#b5e5f3}
+.line{border-bottom:1px solid #17374b;padding:5px 0;overflow-wrap:anywhere}
+.small{font-size:11px;color:#7da8ba;line-height:1.5}
+footer{text-align:center;padding:20px;color:#66899c;font-size:11px}
+@media(max-width:480px){.app{padding:12px}.logo{font-size:16px}.grid{gap:8px}.panel{padding:11px}.reactor{width:165px;height:165px}.clock{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">N.A.P // JARVIS</div>
+  <div class="status" id="status">● SYSTEM ONLINE</div>
+</header>
+
+<h1>PERSONAL AI INTERFACE</h1>
+<div class="sub">NEURAL ASSISTANCE PLATFORM · VERSION 1.0</div>
+
+<div class="reactor-area">
+  <div class="reactor">
+    <div class="core"><b>J.A.R.V.I.S</b><span id="coreStatus">STANDBY MODE</span></div>
+  </div>
+</div>
+
+<div class="grid">
+  <section class="panel">
+    <h2>LOCAL TIME</h2>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="date" id="date"></div>
+  </section>
+
+  <section class="panel">
+    <h2>QUICK ACCESS</h2>
+    <div class="actions">
+      <button onclick="openSite('https://www.google.com')">Google</button>
+      <button onclick="openSite('https://www.youtube.com')">YouTube</button>
+      <button onclick="openSite('https://chatgpt.com')">ChatGPT</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>VOICE COMMAND</h2>
+    <div class="small">Tap the button and speak a command.</div>
+    <button class="primary" id="mic" onclick="listen()">🎙 ACTIVATE VOICE</button>
+    <div class="small" id="voiceInfo">Microphone not activated.</div>
+  </section>
+
+  <section class="panel">
+    <h2>COMMAND CONSOLE</h2>
+    <form id="commandForm">
+      <input id="command" placeholder="Type a command..." autocomplete="off">
+      <button class="primary" style="width:100%;margin-top:8px">EXECUTE</button>
+    </form>
+    <div class="small">Try: time, date, search physics, open YouTube, help.</div>
+  </section>
+
+  <section class="panel">
+    <h2>PERSONAL NOTES</h2>
+    <textarea id="notes" placeholder="Write your notes here..."></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button class="primary" onclick="saveNotes()">SAVE</button>
+      <button onclick="clearNotes()">CLEAR</button>
+    </div>
+    <div class="small" id="noteStatus">Notes stay in this browser on this device.</div>
+  </section>
+
+  <section class="panel">
+    <h2>SYSTEM RESPONSE</h2>
+    <div id="log" aria-live="polite">
+      <div class="line">JARVIS: All primary systems initialized.</div>
+      <div class="line">JARVIS: Ready for your command.</div>
+    </div>
+    <button onclick="clearLog()" style="width:100%;margin-top:8px">CLEAR CONSOLE</button>
+  </section>
+
+  <section class="panel" style="grid-column:1/-1">
+    <h2>QUICK TIMER</h2>
+    <div class="actions">
+      <button onclick="startTimer(60)">1 MIN</button>
+      <button onclick="startTimer(300)">5 MIN</button>
+      <button onclick="startTimer(600)">10 MIN</button>
+      <button onclick="stopTimer()">STOP</button>
+    </div>
+    <div class="clock" id="timerDisplay" style="margin-top:10px">00:00</div>
+  </section>
+</div>
+
+<footer>N.A.P JARVIS AI · PERSONAL DASHBOARD<br>
+Browser-based assistant · Internet required for web searches</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let recognition = null;
+let timerInterval = null;
+let timerEnd = 0;
+let timerRemaining = 0;
+
+function log(message){
+  const item = document.createElement('div');
+  item.className = 'line';
+  item.textContent = 'JARVIS: ' + message;
+  $('log').appendChild(item);
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+function speak(message){
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.lang = 'en-IN';
+  window.speechSynthesis.speak(utterance);
+}
+
+function respond(message, sayIt = true){
+  log(message);
+  $('coreStatus').textContent = 'RESPONSE MODE';
+  if(sayIt) speak(message);
+  setTimeout(() => $('coreStatus').textContent = 'STANDBY MODE', 2200);
+}
+
+function updateClock(){
+  const now = new Date();
+  $('clock').textContent = now.toLocaleTimeString('en-IN');
+  $('date').textContent = now.toLocaleDateString('en-IN',{
+    weekday:'long',year:'numeric',month:'long',day:'numeric'
+  });
+}
+updateClock();
+setInterval(updateClock,1000);
+
+function openSite(url){ window.open(url,'_blank','noopener'); }
+
+function execute(raw){
+  const cmd = raw.trim().toLowerCase();
+  if(!cmd) return;
+  $('command').value = '';
+  log('COMMAND: ' + raw);
+
+  if(/\b(help|commands)\b/.test(cmd)){
+    respond('You can ask for the time, date, a web search, or open YouTube, Google, and ChatGPT.');
+  } else if(/\b(time|clock)\b/.test(cmd)){
+    respond('The time is ' + new Date().toLocaleTimeString('en-IN'));
+  } else if(/\b(date|day)\b/.test(cmd)){
+    respond('Today is ' + new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+  } else if(cmd.includes('open youtube')){
+    respond('Opening YouTube.');
+    openSite('https://www.youtube.com');
+  } else if(cmd.includes('open google')){
+    respond('Opening Google.');
+    openSite('https://www.google.com');
+  } else if(cmd.includes('open chatgpt')){
+    respond('Opening ChatGPT.');
+    openSite('https://chatgpt.com');
+  } else if(cmd.startsWith('search ') || cmd.startsWith('search for ')){
+    const query = cmd.replace(/^search( for)?\s+/,'');
+    if(!query){respond('Please tell me what to search for.');return;}
+    respond('Searching the web for ' + query);
+    openSite('https://www.google.com/search?q='+encodeURIComponent(query));
+  } else if(cmd.includes('stop speaking')){
+    window.speechSynthesis?.cancel();
+    respond('Speech stopped.',false);
+  } else if(cmd.includes('save notes')){
+    saveNotes();
+    respond('Your notes have been saved.');
+  } else if(cmd.includes('clear console')){
+    clearLog();
+    respond('Console cleared.');
+  } else if(cmd.includes('start one minute timer')){
+    startTimer(60);
+    respond('One minute timer started.');
+  } else if(cmd.includes('start five minute timer')){
+    startTimer(300);
+    respond('Five minute timer started.');
+  } else {
+    respond('I do not have a built-in action for that command yet. Try help, or search the web.');
+  }
+}
+
+$('commandForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  execute($('command').value);
+});
+
+function listen(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    $('voiceInfo').textContent='Speech recognition is not supported by this browser. Try an up-to-date Chrome browser.';
+    respond('Voice recognition is not supported here.');
+    return;
+  }
+  if(recognition){try{recognition.stop()}catch(e){}}
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onstart = ()=>{
+    $('status').textContent='● LISTENING';
+    $('coreStatus').textContent='LISTENING';
+    $('voiceInfo').textContent='Listening. Speak now.';
+  };
+  recognition.onresult = e=>{
+    const heard = e.results[0][0].transcript;
+    $('voiceInfo').textContent='Heard: '+heard;
+    execute(heard);
+  };
+  recognition.onerror = e=>{
+    $('voiceInfo').textContent='Voice error: '+e.error+'. Check microphone permission and browser support.';
+    $('status').textContent='● SYSTEM ONLINE';
+  };
+  recognition.onend = ()=>{
+    $('status').textContent='● SYSTEM ONLINE';
+    $('coreStatus').textContent='STANDBY MODE';
+  };
+  try{recognition.start()}catch(e){
+    $('voiceInfo').textContent='Could not start listening. Try again.';
+  }
+}
+
+function saveNotes(){
+  try{
+    localStorage.setItem('napJarvisNotes',$('notes').value);
+    $('noteStatus').textContent='Notes saved on this device.';
+  }catch(e){
+    $('noteStatus').textContent='Storage unavailable in this browser mode.';
+  }
+}
+function clearNotes(){
+  if(!confirm('Clear your notes?')) return;
+  $('notes').value='';
+  try{localStorage.removeItem('napJarvisNotes')}catch(e){}
+  $('noteStatus').textContent='Notes cleared.';
+}
+try{$('notes').value=localStorage.getItem('napJarvisNotes')||''}catch(e){}
+
+function clearLog(){
+  $('log').replaceChildren();
+}
+function startTimer(seconds){
+  clearInterval(timerInterval);
+  timerRemaining=seconds;
+  timerEnd=Date.now()+seconds*1000;
+  updateTimer();
+  timerInterval=setInterval(updateTimer,250);
+  respond('Timer started.');
+}
+function updateTimer(){
+  const remaining=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));
+  $('timerDisplay').textContent=String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(remaining%60).padStart(2,'0');
+  if(remaining===0){
+    clearInterval(timerInterval);
+    timerInterval=null;
+    respond('Timer complete.');
+  }
+}
+function stopTimer(){
+  clearInterval(timerInterval);
+  timerInterval=null;
+  $('timerDisplay').textContent='00:00';
+  respond('Timer stopped.');
+}
+</script>
+</body>
+</html>
